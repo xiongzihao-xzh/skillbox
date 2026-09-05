@@ -1,0 +1,37 @@
+# Keep skill sources (.agents/skills, .codex/skills) and skills-lock.json tracked.
+
+# OS and editor files
+.DS_Store
+._*
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local credentials and environment overrides
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# Dependencies and caches
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# Generated output and temporary files
+/dist/
+/build/
+/coverage/
+/tmp/
+/temp/
+*.log
