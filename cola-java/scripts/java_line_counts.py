@@ -17,8 +17,8 @@ def changed_files(root):
     except subprocess.CalledProcessError:
         tracked = git("ls-files", "-z")
     else:
-        tracked = git("diff", "--cached", "--name-only", "-z", "--diff-filter=ACMR", "HEAD", "--")
-        tracked += git("diff", "--name-only", "-z", "--diff-filter=ACMR", "--")
+        tracked = git("diff", "--cached", "--name-only", "-z", "--diff-filter=ACMRT", "HEAD", "--")
+        tracked += git("diff", "--name-only", "-z", "--diff-filter=ACMRT", "--")
     names = tracked + git("ls-files", "--others", "--exclude-standard", "-z")
     return sorted({root / name.decode("utf-8") for name in names.split(b"\0")
                    if name.endswith(b".java") and (root / name.decode("utf-8")).is_file()})

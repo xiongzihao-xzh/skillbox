@@ -87,6 +87,49 @@ class OrderHttpTest {
   }
 
   @Test
+  void unsupportedResponseTypeDoesNotCancelTheOrder() {
+    var created =
+        http.postForEntity(
+            "/sales/orders",
+            Map.of("lines", List.of(Map.of("sku", "book", "quantity", 2, "unitPrice", 10))),
+            JsonNode.class);
+    assertEquals(201, created.getStatusCode().value());
+    String order = created.getHeaders().getLocation().toString();
+    String cancellation = order + "/cancellation";
+    var headers = new HttpHeaders();
+    headers.setAccept(List.of(MediaType.TEXT_PLAIN));
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    var body = Map.of("reason", "changed my mind");
+
+    var rejected =
+        http.exchange(cancellation, HttpMethod.PUT, new HttpEntity<>(body, headers), String.class);
+    assertEquals(406, rejected.getStatusCode().value());
+    var unchanged = http.getForEntity(order, JsonNode.class).getBody().path("data");
+    assertEquals("CREATED", unchanged.path("status").asText());
+    assertTrue(unchanged.path("cancellation").isNull());
+    var missing = http.getForEntity(cancellation, JsonNode.class);
+    assertEquals(404, missing.getStatusCode().value());
+    assertEquals("CANCELLATION_NOT_FOUND", missing.getBody().path("errCode").asText());
+    var first = http.exchange(cancellation, HttpMethod.PUT, new HttpEntity<>(body), JsonNode.class);
+    assertEquals(201, first.getStatusCode().value());
+  }
+
+  @Test
+  void fractionalQuantityIsRejectedInsteadOfTruncated() {
+    var rejected =
+        http.postForEntity(
+            "/sales/orders",
+            Map.of(
+                "lines",
+                List.of(Map.of("sku", "book", "quantity", new BigDecimal("2.9"), "unitPrice", 10))),
+            JsonNode.class);
+    assertEquals(400, rejected.getStatusCode().value());
+    assertFalse(rejected.getBody().path("success").asBoolean());
+    assertEquals("INVALID_REQUEST", rejected.getBody().path("errCode").asText());
+    assertNull(rejected.getHeaders().getLocation());
+  }
+
+  @Test
   void protocolErrorsKeepTheirStatusAndColaErrorBody() {
     var invalid = http.postForEntity("/sales/orders", Map.of("lines", List.of()), JsonNode.class);
     assertEquals(400, invalid.getStatusCode().value());

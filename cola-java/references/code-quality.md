@@ -24,7 +24,7 @@
 `scripts/java_line_counts.py` 仅依赖 Python 3 标准库。下文 `<skill-dir>` 是安装后本 Skill 的目录，`--root` 是目标项目路径；不依赖研究时的 COLA 源仓库。
 
 ```bash
-# 默认：Git 仓库根下，暂存 + 未暂存 + 未跟踪的 Java 变更，忽略删除项
+# 默认：Git 仓库根下，暂存 + 未暂存 + 未跟踪的 Java 变更，含类型变更，忽略删除项
 python3 <skill-dir>/scripts/java_line_counts.py --root <repository-root>
 
 # 显式选择（相对于 root）；适合非 Git 项目和本次已知文件集合

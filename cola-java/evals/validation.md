@@ -1,6 +1,22 @@
 # 验证记录
 
-验证日期：2026-09-06。本文区分已编写用例、静态检查、真实执行及尚未验证事项。用户手动开启 implement；没有自动调用正式 code-review 阶段。
+验证日期：2026-09-06。本文区分已编写用例、静态检查、真实执行及尚未验证事项。用户已分别手动开启 implement 和 code-review，并授权修复审查发现的问题。当前修复结果见下一节；后文保留初版验收的历史基线。
+
+## 审查修复：实际通过
+
+审查范围为 `892647f...1081a35`；Standards 发现 1 项 P2，Spec 发现 2 项 P2。三项均先加入公共边界回归测试，实际观察失败，再修复并确认通过：
+
+| 问题 | 修复前观察到的失败 | 修复与回归结果 |
+| --- | --- | --- |
+| Git 类型变更漏检 | 跟踪的 Java 符号链接改为 501 行普通文件后，暂存和未暂存两种默认统计均返回空文件集 | 两种 diff 纳入 `T`；新增 CLI 测试均报告该文件 501 行、over_limit=true，无排除项 |
+| 406 后仍取消订单 | Accept: text/plain 的取消请求返回 406，但 GET 状态已变为 CANCELLED | 生产映射声明 JSON produces，在写用例前拒绝不支持的响应类型；HTTP 测试确认状态仍为 CREATED、无取消记录，改用 JSON 后首次取消返回 201 |
+| 小数数量被截断 | quantity=2.9 返回 201，而预期为 400 | 关闭 accept-float-as-int；HTTP 测试确认 400、INVALID_REQUEST、success=false，且无创建 Location |
+
+本轮在示例根目录执行 `mvn spotless:apply`，随后执行一次最终 `mvn verify`，均退出 0；仍使用独立的 Maven settings 和缓存。最终 **13 项 Java 测试全部通过**：OrderTest 3、OrderServiceTest 2、OrderMappingTest 1、OrderHttpTest 7，0 failures/errors/skipped。执行 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest cola-java/evals/test_java_line_counts.py`，**7 项测试全部通过**；类型变更夹具由 TemporaryDirectory 自动清理。
+
+格式化后重新统计完整示例：31 个手写 Java 文件（生产 27、测试 4），无超限候选；最长生产文件 OrderController.java 为 80 行，最长整体文件 OrderHttpTest.java 为 221 行。两个 MapStruct 生成文件仍按已核验的构建目录依据排除。
+
+HTTP 指导、示例说明及 C14/C15 验收用例已同步这些边界。本轮检查修复 diff 并执行回归，没有重复完整双轴审查或 GitHub 安装验收；初版远程安装验证的明确提交基线保留在下文。
 
 ## 研究与环境
 
@@ -9,7 +25,7 @@
 - CLI 实测 skills 1.5.23、Node 22.22.1；Python 标准库测试使用 Python 3.9.6。Skill 官方校验工具使用临时虚拟环境及 PyYAML 6.0.3。
 - Maven 使用临时空 settings 和独立缓存；npm 使用临时缓存、`--userconfig=/dev/null`、`--ignore-scripts` 与 `DO_NOT_TRACK=1`。没有改写用户的 HOME、CODEX_HOME、全局技能或全局包配置。
 
-## Java 示例：实际通过
+## Java 示例：初版验收通过
 
 在 [orders](../assets/examples/orders/README.md) 根目录执行 `mvn spotless:apply`，然后执行一次最终 `mvn verify`，结果 **BUILD SUCCESS**，7 个 reactor 项目全部成功。实际命令另带 `-B -s /private/tmp/cola-java-build/settings.xml -Dmaven.repo.local=/private/tmp/cola-java-build/m2`，隔离依赖配置与缓存。
 
@@ -28,7 +44,7 @@ MapStruct 在 App 和 Infrastructure 各生成一个实现，参与实际编译�
 
 最终 POM 检查与示例一致：`start → adapter → app → infrastructure → domain → client`，另有 `app → client`。逐一检查生产入口、执行器、领域、Gateway、Mapper 和转换器：Controller 仅调用 Client API；写入经过 Domain Gateway；纯查询读取 Infra；Domain 无 Infra/Web 依赖；四个生产路由均在方法级声明完整业务路径。此结论覆盖本例，不代表所有 COLA 项目均已检查。
 
-## 统计工具与规模：实际通过
+## 统计工具与规模：初版验收通过
 
 执行 `python3 -m unittest cola-java/evals/test_java_line_counts.py`，**6 tests，0 failures/errors**。夹具由 TemporaryDirectory 隔离并清理，验证：
 
@@ -65,7 +81,7 @@ MapStruct 在 App 和 Infrastructure 各生成一个实现，参与实际编译�
 - 在两个独立临时项目分别运行 `add <skillbox-root>` 和 `add <skillbox-root>/cola-java`，均使用 `--skill cola-java --agent codex --copy -y`，成功复制到项目 `.agents/skills/cola-java`。
 - 安装时 57 个分发文件逐一 SHA-256 与源文件一致；只安装 cola-java，没有符号链接或嵌套 .git。直接使用安装目录内的统计脚本检查其携带示例，得到 31 个手写文件，证明该工具运行不依赖本地 COLA 源仓库。后续只补充验证文档，安装验证不表示冻结未来文件内容。
 
-## GitHub 分发
+## GitHub 分发：初版安装验收
 
 真实 remote 为 `git@github.com:xiongzihao-xzh/skillbox.git`，当前分支 main。仓库根 URL 与 `/tree/main/cola-java` 的命令在分发仓库的 [根 README](https://github.com/xiongzihao-xzh/skillbox#安装-cola-java) 单点维护。
 
@@ -80,7 +96,7 @@ npx skills@1.5.23 add https://github.com/xiongzihao-xzh/skillbox/tree/main/cola-
 
 实际使用上述参数与已缓存的固定 CLI 包，通过临时 npm 配置执行。两种来源均报告 Found 1 skill、Selected 1 skill: cola-java、Installed 1 skill；57 个文件逐一 SHA-256 与已推送的 `ea5e9e40213442a6db31eaed59e6ed3356f1c63d` 提交内容一致，安装目录内无符号链接或嵌套 .git。对 GitHub 根地址安装结果再次运行官方 Skill 校验工具，输出 `Skill is valid!`。
 
-因此仓库根地址发现、子目录地址与 Codex 项目级复制安装均已真实验证通过。最后补交的变更只记录分发结果与设计交接状态，不修改已验证的 Skill 规则、脚本或 Java 示例。全局安装仅提供命令，未执行。
+因此初版的仓库根地址发现、子目录地址与 Codex 项目级复制安装均已真实验证通过。初版补充提交 `1081a35` 只记录分发结果与设计交接状态；后续代码修复另见本文的审查修复记录。全局安装仅提供命令，未执行。
 
 ## 失败修正与未验证范围
 
@@ -88,4 +104,4 @@ TDD 中实际观察过缺失领域/应用实现、缺失启动配置，以及取
 
 初次依赖解析受沙箱 DNS 限制，授权的联网执行后成功；这不是业务测试的 red。应用测试曾因未使用的 Mockito 自动监听器尝试动态装载 agent 而失败；示例不使用 mock，已排除该测试依赖，真实协作测试通过。没有掩盖或跳过测试。
 
-未实测：COLA 上游工程完整构建/数据库测试、真实数据库事务与跨进程幂等、支付/库存/发货、生产认证/租户隔离、全局技能安装、所有行为用例的独立代理运行、手动 code-review 阶段。没有把教学订单规则推广成所有业务要求；没有把来源提交称为远端最新版本。
+未实测：COLA 上游工程完整构建/数据库测试、真实数据库事务与跨进程幂等、支付/库存/发货、生产认证/租户隔离、全局技能安装、所有行为用例的独立代理运行。没有把教学订单规则推广成所有业务要求；没有把来源提交称为远端最新版本。

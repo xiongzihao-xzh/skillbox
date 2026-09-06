@@ -74,6 +74,33 @@ class LineCountsTest(unittest.TestCase):
             self.assertEqual([f["path"] for f in report["files"]],
                              ["Edited.java", "New file.java", "Reverted.java", "Staged.java"])
 
+    def test_default_scope_includes_staged_and_unstaged_java_type_changes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                subprocess.run(["git", "-C", directory, *args], check=True, capture_output=True)
+            git("init", "-q")
+            (root / "original.txt").write_text("class Order {}\n")
+            (root / "Order.java").symlink_to("original.txt")
+            git("add", ".")
+            git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                "-c", "commit.gpgsign=false", "commit", "-qm", "fixture")
+            (root / "Order.java").unlink()
+            (root / "Order.java").write_text("class Order {\n" + "  // line\n" * 499 + "}\n")
+            for staged in (False, True):
+                with self.subTest(staged=staged):
+                    if staged:
+                        git("add", "Order.java")
+                    result = subprocess.run([sys.executable, str(SCRIPT), "--root", directory],
+                                            capture_output=True, text=True)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    report = json.loads(result.stdout)
+                    self.assertEqual(report["scope"], "changed")
+                    self.assertEqual(report["files"], [{
+                        "path": "Order.java", "lines": 501, "over_limit": True,
+                    }])
+                    self.assertEqual(report["excluded"], [])
+
     def test_generated_exclusion_is_explicit_and_reports_its_basis(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

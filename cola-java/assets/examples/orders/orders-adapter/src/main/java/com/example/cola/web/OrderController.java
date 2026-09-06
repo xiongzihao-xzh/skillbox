@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.net.URI;
 import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +30,7 @@ public class OrderController {
     this.orders = orders;
   }
 
-  @PostMapping("/sales/orders")
+  @PostMapping(value = "/sales/orders", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SingleResponse<OrderDTO>> create(
       @Valid @RequestBody OrderCreateCmd command) {
     var result = orders.createOrder(command);
@@ -38,14 +39,16 @@ public class OrderController {
         .body(result);
   }
 
-  @GetMapping("/sales/orders/{orderId}")
+  @GetMapping(value = "/sales/orders/{orderId}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SingleResponse<OrderDTO>> get(@PathVariable String orderId) {
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noStore())
         .body(orders.getOrder(new OrderGetQry(orderId)));
   }
 
-  @PutMapping("/sales/orders/{orderId}/cancellation")
+  @PutMapping(
+      value = "/sales/orders/{orderId}/cancellation",
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SingleResponse<CancellationDTO>> cancel(
       @PathVariable String orderId, @Valid @RequestBody CancellationRequest request) {
     var result = orders.cancelOrder(new OrderCancelCmd(orderId, request.reason())).getData();
@@ -58,7 +61,9 @@ public class OrderController {
         .body(SingleResponse.of(result.getCancellation()));
   }
 
-  @GetMapping("/sales/orders/{orderId}/cancellation")
+  @GetMapping(
+      value = "/sales/orders/{orderId}/cancellation",
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SingleResponse<CancellationDTO>> getCancellation(
       @PathVariable String orderId) {
     var cancellation = orders.getOrder(new OrderGetQry(orderId)).getData().getCancellation();

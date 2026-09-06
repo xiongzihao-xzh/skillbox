@@ -37,6 +37,8 @@ curl -i http://localhost:8080/sales/orders/order-id/cancellation
 
 取消时服务器产生时间，JSON 属性顺序不影响相同内容判断；本例 reason 按解码后的字符串精确比较，不自行 trim 或改变大小写。金额以同一教学计价单位的 BigDecimal 表达；没有定义多币种和汇率规则。POST 创建本身不提供重试去重。业务 HTTP 响应显式 no-store；没有为演示 CRUD 添加无业务用途的删除接口。
 
+生产接口声明 JSON 响应类型，不支持的 Accept 在进入业务用例前返回 406。数量采用正整数模型，JSON 浮点输入（例如 `2.9`）返回 400 + INVALID_REQUEST，不进行截断；单价继续使用 BigDecimal。
+
 ## 代码入口
 
 | 模块 | 请求沿途的关键类型 |

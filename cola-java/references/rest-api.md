@@ -57,6 +57,10 @@ class OrderController {
 
 未认证/无权限按认证方案使用 401（含适用 challenge）/403，方法不支持用 405 并保留 Allow，媒体类型不支持用 415，协商失败用 406。不要把框架错误全部改成 200 或 500。[状态定义](https://www.rfc-editor.org/rfc/rfc9110.html#section-15)
 
+在进入写用例前完成可提前判断的协议检查。方法映射声明实际支持的响应类型（本例 `produces = "application/json"`），使不支持的 Accept 在执行取消等业务前返回 406；测试同时查询资源，确认失败请求没有改变状态或创建记录。
+
+Bean Validation 检查的是反序列化后的值。对本例的整数数量，关闭 `spring.jackson.deserialization.accept-float-as-int`，让 `2.9` 等浮点输入返回 400；仅用 `@Positive` 无法发现已经被截断的数量。其他对象按自身输入契约选择转换规则。
+
 本例有响应体时用 COLA SingleResponse/Response；错误码是稳定业务契约，消息可读但不供客户端分支判断。成功包装的数据与内部用例元数据分开：取消是否首次用于 Adapter 选择状态，HTTP data 仍是取消记录。204/HEAD/304 遵循无响应体语义，不能由统一包装器追加 JSON。
 
 可以选 Problem Details，但它不是本例默认；若目标项目采用，保持其 status 与实际状态一致。响应 Java 类与 HTTP 契约是独立层次。[RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.html#section-3.1.2)
