@@ -1,6 +1,6 @@
 # cola-java 实现交接稿
 
-状态：Q1–Q10 的设计决策及整体理解均已获用户确认；用户已手动调用 implement。Skill、完整示例及本地验证已完成，GitHub 分发正在验证，实际结果见 [验证记录](../cola-java/evals/validation.md)。code-review 保持等待用户手动调用。本文件保留已确认的设计输入，未向 GitHub Issues 发布任务或规格。
+状态：Q1–Q10 的设计决策及整体理解均已获用户确认；用户已手动调用 implement，现已完成 Skill、完整示例、本地验证与 GitHub 根地址/子目录安装验收，实际结果见 [验证记录](../cola-java/evals/validation.md)。code-review 保持等待用户手动调用。本文件保留已确认的设计输入，未向 GitHub Issues 发布任务或规格。
 
 阶段由用户分别手动调用：`grill-with-docs` → `implement` → `code-review`。整体设计确认不等于调用后两个阶段。
 

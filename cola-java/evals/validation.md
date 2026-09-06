@@ -60,7 +60,7 @@ MapStruct 在 App 和 Infrastructure 各生成一个实现，参与实际编译�
 ## 格式、资源与本地安装：实际通过
 
 - 实际运行环境提供的 `skill-creator/scripts/quick_validate.py cola-java`，输出 `Skill is valid!`。检查了 frontmatter、名称和脚手架残留；另读取生成的 agents/openai.yaml，核对显示名称、短描述、显式 `$cola-java` 提示与默认隐式发现策略。
-- 检查 Skill 与根 README 的相对文件链接和 Markdown 标题锚点：首次检查 34 个，0 个缺失；交付文档完成后再次复核。运行说明、脚本和模板没有作者机器路径或本地 COLA 运行依赖。
+- 检查 Skill 与根 README 的相对文件链接和 Markdown 标题锚点：首次检查 34 个，交付文档完成后复核 39 个，均为 0 个缺失，并检查 Skill 内链接没有越出分发目录。运行说明、脚本和模板没有作者机器路径或本地 COLA 运行依赖。
 - 实际运行 `skills@1.5.23 add <skillbox-root> --skill cola-java --agent codex --list`，报告 Found 1 skill / cola-java。
 - 在两个独立临时项目分别运行 `add <skillbox-root>` 和 `add <skillbox-root>/cola-java`，均使用 `--skill cola-java --agent codex --copy -y`，成功复制到项目 `.agents/skills/cola-java`。
 - 安装时 57 个分发文件逐一 SHA-256 与源文件一致；只安装 cola-java，没有符号链接或嵌套 .git。直接使用安装目录内的统计脚本检查其携带示例，得到 31 个手写文件，证明该工具运行不依赖本地 COLA 源仓库。后续只补充验证文档，安装验证不表示冻结未来文件内容。
@@ -69,7 +69,18 @@ MapStruct 在 App 和 Infrastructure 各生成一个实现，参与实际编译�
 
 真实 remote 为 `git@github.com:xiongzihao-xzh/skillbox.git`，当前分支 main。仓库根 URL 与 `/tree/main/cola-java` 的命令在分发仓库的 [根 README](https://github.com/xiongzihao-xzh/skillbox#安装-cola-java) 单点维护。
 
-本地实现已就绪；GitHub 来源的实际安装将在首次实现提交推送后执行，再把执行结果更新到本节。当前记录不宣称远程安装通过。
+已将设计记录与实现正常推送到 main，然后在两个独立临时项目分别执行：
+
+```bash
+npx skills@1.5.23 add https://github.com/xiongzihao-xzh/skillbox \
+  --skill cola-java --agent codex --copy -y
+npx skills@1.5.23 add https://github.com/xiongzihao-xzh/skillbox/tree/main/cola-java \
+  --skill cola-java --agent codex --copy -y
+```
+
+实际使用上述参数与已缓存的固定 CLI 包，通过临时 npm 配置执行。两种来源均报告 Found 1 skill、Selected 1 skill: cola-java、Installed 1 skill；57 个文件逐一 SHA-256 与已推送的 `ea5e9e40213442a6db31eaed59e6ed3356f1c63d` 提交内容一致，安装目录内无符号链接或嵌套 .git。对 GitHub 根地址安装结果再次运行官方 Skill 校验工具，输出 `Skill is valid!`。
+
+因此仓库根地址发现、子目录地址与 Codex 项目级复制安装均已真实验证通过。最后补交的变更只记录分发结果与设计交接状态，不修改已验证的 Skill 规则、脚本或 Java 示例。全局安装仅提供命令，未执行。
 
 ## 失败修正与未验证范围
 
