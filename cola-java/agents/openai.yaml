@@ -1,0 +1,4 @@
+interface:
+  display_name: "COLA Java"
+  short_description: "以 Java 21 和 Spring Boot 3 实践 COLA 分层、接口与业务类规模约束"
+  default_prompt: "使用 $cola-java 按当前项目约定实现业务用例，核对分层、HTTP 契约与业务类规模并验证结果。"

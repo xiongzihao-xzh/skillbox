@@ -1,0 +1,11 @@
+package com.example.cola.dto.data;
+
+public enum ErrorCode {
+  INVALID_ORDER,
+  INVALID_CANCELLATION,
+  ORDER_NOT_FOUND,
+  CANCELLATION_NOT_FOUND,
+  CANCELLATION_CONFLICT,
+  INVALID_REQUEST,
+  INTERNAL_ERROR
+}
